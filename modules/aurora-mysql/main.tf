@@ -1,23 +1,23 @@
 # locals is a module that creates common local variables for all resources
 locals {
+  db_subnet_group_full_name = "${local.naming_prefix}-db-subnet-group-${var.rds_cluster_database_name}"
   description               = "Security group for ${local.naming_prefix}-rds-${var.rds_cluster_database_name}"
   naming_prefix             = "${lower(var.tags["Business:Team"])}-${var.tags["Technical:Environment"]}"
   rds_cluster_full_name     = "${local.naming_prefix}-rds-cluster-${var.rds_cluster_database_name}"
   rds_instance_full_name    = "${local.naming_prefix}-rds-instance-${var.rds_cluster_database_name}"
   sg_full_name              = "${local.naming_prefix}-sg-${var.rds_cluster_database_name}"
-  db_subnet_group_full_name = "${local.naming_prefix}-db-subnet-group-${var.rds_cluster_database_name}"
 }
 
 # Creates an RDS instance
 resource "aws_rds_cluster_instance" "this" {
-  count                      = var.rds_cluster_instance_count
-  identifier                 = "${local.rds_instance_full_name}-${count.index}"
+  auto_minor_version_upgrade = var.rds_auto_minor_version_upgrade
   cluster_identifier         = aws_rds_cluster.this.id
+  count                      = var.rds_cluster_instance_count
+  db_subnet_group_name       = aws_db_subnet_group.this.name
+  identifier                 = "${local.rds_instance_full_name}-${count.index}"
   instance_class             = var.rds_cluster_instance_class
   engine                     = var.rds_cluster_engine
   engine_version             = var.rds_cluster_engine_version
-  db_subnet_group_name       = aws_db_subnet_group.this.name
-  auto_minor_version_upgrade = var.rds_auto_minor_version_upgrade
   tags = merge(
     var.tags,
     {
